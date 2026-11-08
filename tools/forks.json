@@ -50,25 +50,25 @@
     },
     "plugins/pstack/skills/poteto-help/SKILL.md": {
       "kind": "port-feature",
-      "why": "Routes installation, model-sheet loading, and persistent routing preferences to the current runtime's setup sources, gives installed playbooks precedence over upstream guides, and keeps the port's public skill loading, hidden principles, verification-skill naming, local-worker advice, driver and built-in equivalents, excluded make-bot-ui row, and orchestrate wording as prose changes in this fork, and routes \"stack them, don't ship\" to Autopilot-stack, because neither autopilot merges.",
+      "why": "Routes installation, model-sheet loading, and persistent routing preferences to the current runtime's setup sources, gives installed playbooks precedence over upstream guides, and keeps the port's public skill loading, hidden principles, verification-skill naming, local-worker advice, driver and built-in equivalents, excluded make-bot-ui row, and orchestrate wording as prose changes in this fork, and routes \"stack them, don't ship\" to Autopilot-stack, because Autopilot-stack explicitly stops before merge.",
       "since": "0.9.71",
       "upstream": "not-proposed"
     },
     "plugins/pstack/skills/poteto-mode/SKILL.md": {
       "kind": "policy",
-      "why": "Adds the Platform Adaptation section, whose runtime sentence the generator stamps from RUNTIMES, with its task-tool and todo.md fallback (per task slug when sessions share a checkout, and beside the desktop app's short update_plan list), the run-or-verify driver line, the deploy-platform and defect-severity triggers, the port's principle summaries, the project playbooks paragraph, and the closed-review-gate rule that the Codex and Pi mappings point to, and it points the Agent-call defaults at the Models section with full tool access and the namespaced pstack:poteto-agent name, requires stopping an abandoned agent before replacing it, renders every reply item as prose, layers technical-writing on top of unslop, and describes Autopilot-full as stopping at merge-ready for the operator's click and Autopilot-stack as Autopilot-full for PRs that build on each other.",
+      "why": "Adds the Platform Adaptation section, whose runtime sentence the generator stamps from RUNTIMES, with its task-tool and todo.md fallback (per task slug when sessions share a checkout, and beside the desktop app's short update_plan list), the run-or-verify driver line, the deploy-platform and defect-severity triggers, the port's principle summaries, the project playbooks paragraph, and the closed-review-gate rule that the Codex and Pi mappings point to, and it points the Agent-call defaults at the Models section with full tool access and the namespaced pstack:poteto-agent name, requires stopping an abandoned agent before replacing it, renders every reply item as prose, layers technical-writing on top of unslop, and describes authorized Autopilot-full as owner-led confirmed merge, while Autopilot-stack retains its explicit no-merge hold.",
       "since": "0.9.2",
       "upstream": "not-proposed"
     },
     "plugins/pstack/skills/poteto-mode/playbooks/autopilot-full.md": {
       "kind": "policy",
-      "why": "Owners stop at merge-ready and the operator clicks every merge, with the patch-id rule governing re-verification if trunk moves first, instead of each owner merging after a clean verdict, and the root writes the program objective into the store's notes.md on the go and re-reads it each tick, arms the tick as a dynamic-mode /loop, states the program's size before the first owner starts and waits for the operator's go above three owners, scopes review lanes to what the diff breaks, and stops a PR at two fix-forwards.",
+      "why": "The fearandesire fork restores authorized owner-led merge after independent verification, with current-head checks, shipping head guards and confirmed landing; explicit holds and production boundaries remain, and the root writes the program objective into the store's notes.md on the go and re-reads it each tick, arms the tick as a dynamic-mode /loop, states the program's size before the first owner starts and waits for the operator's go above three owners, scopes review lanes to what the diff breaks, and stops a PR at two fix-forwards.",
       "since": "0.9.39",
       "upstream": "not-proposed"
     },
     "plugins/pstack/skills/poteto-mode/playbooks/autopilot-stack.md": {
       "kind": "policy",
-      "why": "Records each verdict's head SHA, base SHA, base branch, and patch-id, cancels pending merges and leases each push against the captured remote head before any restack, re-verifies a verdict whose applicability to the new base is uncertain, and lists verdicts in place of the merge-ready list, because Autopilot-full already stops at merge-ready.",
+      "why": "Records each verdict's head SHA, base SHA, base branch, and patch-id, cancels pending merges and leases each push against the captured remote head before any restack, re-verifies a verdict whose applicability to the new base is uncertain, and lists verdicts in place of the merge-ready list, while preserving the explicit Autopilot-stack no-merge boundary.",
       "since": "0.9.34",
       "upstream": "not-proposed"
     },
@@ -92,7 +92,7 @@
     },
     "plugins/pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": {
       "kind": "port-feature",
-      "why": "Plans read skills from the installed plugin, keep the store under ~/.claude/orchestrate, write the program objective into the store's notes.md, run the tick as a dynamic-mode /loop that re-reads that objective, run live lanes in worktrees through the driver skill the Non-negotiables resolve instead of on cloud VMs with control-ui or control-cli, name the configured swarm workers model instead of a placeholder, leave rebase and merge authority to the execution playbook, and pick Autopilot-stack only when a PR builds on another, because neither autopilot merges.",
+      "why": "Plans read skills from the installed plugin, keep the store under ~/.claude/orchestrate, write the program objective into the store's notes.md, run the tick as a dynamic-mode /loop that re-reads that objective, run live lanes in worktrees through the driver skill the Non-negotiables resolve instead of on cloud VMs with control-ui or control-cli, name the configured swarm workers model instead of a placeholder, leave rebase and merge authority to the execution playbook, and pick Autopilot-stack only when a PR builds on another, because Autopilot-stack explicitly stops before merge.",
       "since": "0.9.19",
       "upstream": "not-proposed"
     },
