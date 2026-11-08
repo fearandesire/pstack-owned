@@ -11,6 +11,9 @@ import { fileURLToPath } from "node:url";
 const skillsDir = fileURLToPath(new URL("../plugins/pstack/skills", import.meta.url));
 
 const rules = [
+  { source: "fenix owner-led landing", file: "poteto-mode/playbooks/autopilot-full.md", phrase: "service-enforced head condition" },
+  { source: "fenix confirmed landing", file: "poteto-mode/playbooks/autopilot-full.md", phrase: "A queued or auto-merge request is not a confirmed merge." },
+  { source: "fenix explicit stack hold", file: "poteto-mode/playbooks/autopilot-stack.md", phrase: "each owner hands off at merge-ready instead of merging" },
   {
     source: "#331 Codex session effort with an explicit model",
     file: "poteto-mode/references/codex-tools.md",

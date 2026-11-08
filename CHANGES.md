@@ -2,6 +2,10 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
+## 0.9.134 - authorized owner-led landing
+
+This fork of Michael Denyer's 0.9.133 restores owner-agent landing for authorized ordinary Autopilot-full work. Independent verification, current-head checks, service-enforced head guards and confirmed merge readback remain mandatory. Explicit holds and Autopilot-stack still stop before landing; deployment and promotion require separate authorization. Runtime adapters and unrelated workflows remain upstream-owned.
+
 ## 0.9.133 - worktree audit ref and PR fixes, setup-pstack runtime notes
 
 `worktree-audit.mjs` now checks a worktree's ancestry against `refs/remotes/origin/<trunk>`. git resolves the shorthand `origin/<trunk>` to a tag or local branch of that name before the remote-tracking ref. Such a ref pointing at unmerged work made the audit report the worktree merged and safe. The REMOTE column's ahead count reads `refs/remotes/origin/<branch>` for the same reason. @EthanYoQ found and fixed the trunk case in [#423](https://github.com/michael-denyer/pstack-claude/pull/423).
