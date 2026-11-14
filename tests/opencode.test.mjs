@@ -29,42 +29,82 @@ test("Git package exposes its OpenCode server", async () => {
 });
 
 test("does not block OpenCode activation on skill catalog registration", async () => {
-  let releaseTransform;
-  let markApplied;
-  let context;
-  let applied = false;
-  const registered = [];
-  const gate = new Promise((resolve) => { releaseTransform = resolve; });
-  const registeredOnce = new Promise((resolve) => { markApplied = resolve; });
-  const activating = plugin.setup({
-    skill: {
-      transform: async (apply) => {
-        await gate;
-        apply({ get: () => undefined, add: (skill) => { registered.push(skill); } });
-        applied = true;
-        markApplied();
+  const oldConfig = process.env.XDG_CONFIG_HOME;
+  const dir = mkdtempSync(join(tmpdir(), "pstack-opencode-"));
+  process.env.XDG_CONFIG_HOME = dir;
+  try {
+    let releaseTransform;
+    let markApplied;
+    let context;
+    let applied = false;
+    const registered = [];
+    const gate = new Promise((resolve) => { releaseTransform = resolve; });
+    const registeredOnce = new Promise((resolve) => { markApplied = resolve; });
+    const activating = plugin.setup({
+      skill: {
+        transform: async (apply) => {
+          await gate;
+          apply({ get: () => undefined, add: (skill) => { registered.push(skill); } });
+          applied = true;
+          markApplied();
+        },
+        list: async () => ({ data: registered }),
       },
-      list: async () => ({ data: registered }),
-    },
-    session: {
-      hook: async (_name, callback) => { context = callback; },
-      get: async () => ({}),
-    },
-  });
-  // The guard only trips when setup() waits for the transform, which is the
-  // regression: OpenCode never applies a transform until setup settles.
-  const settled = await Promise.race([
-    activating.then(() => "resolved"),
-    new Promise((resolve) => setTimeout(() => resolve("blocked"), 2000)),
-  ]);
-  expect(settled).toBe("resolved");
-  expect(context).toBeDefined();
-  expect(applied).toBe(false);
-  releaseTransform();
-  await registeredOnce;
-  const event = { sessionID: "root", system: [] };
-  await context(event);
-  expect(event.system).toHaveLength(1);
+      session: {
+        hook: async (_name, callback) => { context = callback; },
+        get: async () => ({}),
+      },
+    });
+    // The guard only trips when setup() waits for the transform, which is the
+    // regression: OpenCode never applies a transform until setup settles.
+    const settled = await Promise.race([
+      activating.then(() => "resolved"),
+      new Promise((resolve) => setTimeout(() => resolve("blocked"), 2000)),
+    ]);
+    expect(settled).toBe("resolved");
+    expect(context).toBeDefined();
+    expect(applied).toBe(false);
+    releaseTransform();
+    await registeredOnce;
+    const event = { sessionID: "root", system: [] };
+    await context(event);
+    expect(event.system).toHaveLength(1);
+  } finally {
+    if (oldConfig === undefined) delete process.env.XDG_CONFIG_HOME;
+    else process.env.XDG_CONFIG_HOME = oldConfig;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("skips routing instead of failing a turn when skill registration fails", async () => {
+  const oldConfig = process.env.XDG_CONFIG_HOME;
+  const dir = mkdtempSync(join(tmpdir(), "pstack-opencode-"));
+  process.env.XDG_CONFIG_HOME = dir;
+  const oldError = console.error;
+  const reported = [];
+  console.error = (...args) => { reported.push(args); };
+  try {
+    let context;
+    await plugin.setup({
+      skill: {
+        transform: async () => { throw new Error("catalog unavailable"); },
+        list: async () => ({ data: [] }),
+      },
+      session: {
+        hook: async (_name, callback) => { context = callback; },
+        get: async () => ({}),
+      },
+    });
+    const event = { sessionID: "root", system: [] };
+    await context(event);
+    expect(event.system).toEqual([]);
+    expect(reported).toHaveLength(1);
+  } finally {
+    console.error = oldError;
+    if (oldConfig === undefined) delete process.env.XDG_CONFIG_HOME;
+    else process.env.XDG_CONFIG_HOME = oldConfig;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("routes only while every registered pstack skill belongs to the plugin", async () => {

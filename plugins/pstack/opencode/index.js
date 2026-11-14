@@ -38,20 +38,22 @@ export default {
     // OpenCode applies skill transforms only after setup() settles, so awaiting
     // transform() here deadlocks activation and the model catalog request fails
     // with "Location plugins did not finish activating". The session hook
-    // reports a transform failure instead.
+    // logs a transform failure and skips injection instead.
     let skillTransformError;
     const transformAttempt = Promise.resolve().then(() => ctx.skill.transform((editor) => {
       for (const skill of skills) if (!editor.get(skill.id)) editor.add(skill);
     })).catch((error) => { skillTransformError = error; });
     await ctx.session.hook("context", async (event) => {
       await transformAttempt;
-      if (skillTransformError) throw skillTransformError;
       const session = await ctx.session.get({ sessionID: event.sessionID });
       if (session.parentID || !hookEnabled()) return;
+      if (skillTransformError) {
+        console.error("pstack: OpenCode skill registration failed:", skillTransformError);
+        return;
+      }
       const installed = new Map((await ctx.skill.list()).data.map((skill) => [skill.id, skill.path]));
       if (skills.some((skill) => installed.get(skill.id) !== skill.path)) return;
       event.system.push({ type: "text", text: mandate });
     });
   },
 };
-
