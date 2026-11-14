@@ -2,6 +2,10 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
+## 0.9.135 - OpenCode plugin activation stall
+
+`opencode/index.js` awaited `ctx.skill.transform()` inside `setup()`, but OpenCode applies a plugin's skill transforms only after `setup()` resolves. Activation never finished, so every v2 catalog request failed with HTTP 503 "Location plugins did not finish activating", and a client that loaded the plugin, PandaCode included, listed no models. On OpenCode 2.2.7 the request failed after 13.5 s with 0.9.134 and returned 521 models across 7 providers in 4.2 s once `setup()` stopped waiting. A rejected transform now logs and skips routing instead of failing the turn, and `tests/opencode.test.mjs` covers both paths ([#2](https://github.com/fearandesire/pstack-owned/pull/2)).
+
 ## 0.9.134 - authorized owner-led landing
 
 This fork of Michael Denyer's 0.9.133 restores owner-agent landing for authorized ordinary Autopilot-full work. Independent verification, current-head checks, service-enforced head guards and confirmed merge readback remain mandatory. Explicit holds and Autopilot-stack still stop before landing; deployment and promotion require separate authorization. Runtime adapters and unrelated workflows remain upstream-owned.
