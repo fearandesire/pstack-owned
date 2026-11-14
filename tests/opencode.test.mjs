@@ -28,6 +28,45 @@ test("Git package exposes its OpenCode server", async () => {
   expect((await import("pstack/server")).default).toBe(plugin);
 });
 
+test("does not block OpenCode activation on skill catalog registration", async () => {
+  let releaseTransform;
+  let markApplied;
+  let context;
+  let applied = false;
+  const registered = [];
+  const gate = new Promise((resolve) => { releaseTransform = resolve; });
+  const registeredOnce = new Promise((resolve) => { markApplied = resolve; });
+  const activating = plugin.setup({
+    skill: {
+      transform: async (apply) => {
+        await gate;
+        apply({ get: () => undefined, add: (skill) => { registered.push(skill); } });
+        applied = true;
+        markApplied();
+      },
+      list: async () => ({ data: registered }),
+    },
+    session: {
+      hook: async (_name, callback) => { context = callback; },
+      get: async () => ({}),
+    },
+  });
+  // The guard only trips when setup() waits for the transform, which is the
+  // regression: OpenCode never applies a transform until setup settles.
+  const settled = await Promise.race([
+    activating.then(() => "resolved"),
+    new Promise((resolve) => setTimeout(() => resolve("blocked"), 2000)),
+  ]);
+  expect(settled).toBe("resolved");
+  expect(context).toBeDefined();
+  expect(applied).toBe(false);
+  releaseTransform();
+  await registeredOnce;
+  const event = { sessionID: "root", system: [] };
+  await context(event);
+  expect(event.system).toHaveLength(1);
+});
+
 test("routes only while every registered pstack skill belongs to the plugin", async () => {
   const oldConfig = process.env.XDG_CONFIG_HOME;
   const dir = mkdtempSync(join(tmpdir(), "pstack-opencode-"));

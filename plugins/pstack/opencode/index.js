@@ -35,10 +35,17 @@ export default {
   async setup(ctx) {
     const skills = readSkills();
     const mandate = readFileSync(join(root, "hooks", "session-start-opencode.md"), "utf8");
-    await ctx.skill.transform((editor) => {
+    // OpenCode applies skill transforms only after setup() settles, so awaiting
+    // transform() here deadlocks activation and the model catalog request fails
+    // with "Location plugins did not finish activating". The session hook
+    // reports a transform failure instead.
+    let skillTransformError;
+    const transformAttempt = Promise.resolve().then(() => ctx.skill.transform((editor) => {
       for (const skill of skills) if (!editor.get(skill.id)) editor.add(skill);
-    });
+    })).catch((error) => { skillTransformError = error; });
     await ctx.session.hook("context", async (event) => {
+      await transformAttempt;
+      if (skillTransformError) throw skillTransformError;
       const session = await ctx.session.get({ sessionID: event.sessionID });
       if (session.parentID || !hookEnabled()) return;
       const installed = new Map((await ctx.skill.list()).data.map((skill) => [skill.id, skill.path]));
@@ -47,3 +54,4 @@ export default {
     });
   },
 };
+
