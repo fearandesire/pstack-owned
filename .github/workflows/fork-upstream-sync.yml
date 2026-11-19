@@ -8,12 +8,21 @@ name: Sync from upstream
 #
 # A merge with files that need a person is committed with its conflict markers,
 # labelled upstream-conflict and left open; the "Fork gate" check fails on the
-# markers. A merge without conflicts starts "Fork gate" on the branch and
-# enables auto-merge (a merge commit) only when all of these hold: the rules for
+# markers. A merge without conflicts starts "Fork gate" on the branch (only
+# without the App token, see below) and enables auto-merge (a merge commit) only when all of these hold: the rules for
 # main include a required status check, so the merge waits for Fork gate; and
 # the pull request's head is automation/upstream-sync in this repository, not a
 # fork. Otherwise the pull request stays open and its description and the job
 # summary say why.
+#
+# The push and every pull request call use a token from the FENIX_HOMEBREW GitHub
+# App when the secrets FENIX_HOMEBREW_APP_ID and FENIX_HOMEBREW_APP_PRIVATE_KEY
+# exist (Contents, Pull requests and Workflows write on this repository). That
+# token can push changes to .github/workflows, and a pull request it opens starts
+# its own pull_request workflows, so Fork gate is not dispatched by hand. Without
+# the App the workflow uses GITHUB_TOKEN. That works until an upstream range
+# touches a workflow file, which GITHUB_TOKEN may not push; the run then fails
+# with a message that names the files and the two ways out.
 
 on:
   schedule:
@@ -46,6 +55,26 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: "1.4.4"
+      - name: Check whether the FENIX_HOMEBREW App is configured
+        id: app
+        env:
+          APP_ID: ${{ secrets.FENIX_HOMEBREW_APP_ID }}
+        run: |
+          if [ -n "$APP_ID" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create the App token
+        id: app-token
+        if: steps.app.outputs.configured == 'true'
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
+        with:
+          app-id: ${{ secrets.FENIX_HOMEBREW_APP_ID }}
+          private-key: ${{ secrets.FENIX_HOMEBREW_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
       - name: Stop while a conflict pull request is open
         id: guard
         run: |
@@ -65,10 +94,23 @@ jobs:
           echo "changed=$(jq -r '.changed' "$RUNNER_TEMP/summary.json")" >> "$GITHUB_OUTPUT"
       - name: Push the branch
         if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          APP_CONFIGURED: ${{ steps.app.outputs.configured }}
         run: |
+          if [ "$APP_CONFIGURED" != "true" ]; then
+            files=$(git diff --name-only origin/main HEAD -- .github/workflows)
+            if [ -n "$files" ]; then
+              echo "::error::This sync changes workflow files, which GITHUB_TOKEN may not push: $(echo "$files" | tr '\n' ' '). Either install the FENIX_HOMEBREW App on this repository with Contents, Pull requests and Workflows write and add the secrets FENIX_HOMEBREW_APP_ID and FENIX_HOMEBREW_APP_PRIVATE_KEY, or run npm run skills:update locally and push the branch."
+              exit 1
+            fi
+          fi
           git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/automation/upstream-sync" --force
       - name: Open or update the pull request
         if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          APP_CONFIGURED: ${{ steps.app.outputs.configured }}
         run: |
           set -euo pipefail
           summary="$RUNNER_TEMP/summary.json"
@@ -98,7 +140,9 @@ jobs:
             gh label create upstream-conflict --repo "$GITHUB_REPOSITORY" --color B60205 --description "The upstream sync has conflicts a person must resolve" --force
             gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --add-label upstream-conflict
           else
-            gh workflow run fork-gate.yml --repo "$GITHUB_REPOSITORY" --ref automation/upstream-sync
+            if [ "$APP_CONFIGURED" != "true" ]; then
+              gh workflow run fork-gate.yml --repo "$GITHUB_REPOSITORY" --ref automation/upstream-sync
+            fi
             if [ "$enable" = "true" ]; then
               gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --merge
             fi
