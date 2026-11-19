@@ -1,0 +1,106 @@
+name: Sync from upstream
+
+# Merges michael-denyer/pstack-claude into this fork every Monday and opens a
+# pull request from automation/upstream-sync, using fork/sync-upstream.mjs. The
+# branch is rebuilt from main on every run and force-pushed. A run stops without
+# touching anything while an open pull request from that branch carries the
+# label upstream-conflict, because a person is resolving it.
+#
+# A merge with files that need a person is committed with its conflict markers,
+# labelled upstream-conflict and left open; the "Fork gate" check fails on the
+# markers. A merge without conflicts starts "Fork gate" on the branch and
+# enables auto-merge (a merge commit) only when all of these hold: the rules for
+# main include a required status check, so the merge waits for Fork gate; and
+# the pull request's head is automation/upstream-sync in this repository, not a
+# fork. Otherwise the pull request stays open and its description and the job
+# summary say why.
+
+on:
+  schedule:
+    - cron: "41 7 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: fork-upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync from upstream
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # push automation/upstream-sync
+      pull-requests: write # open, label and update the pull request
+      actions: write # start Fork gate on the pushed branch
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: "1.4.4"
+      - name: Stop while a conflict pull request is open
+        id: guard
+        run: |
+          open=$(gh pr list --repo "$GITHUB_REPOSITORY" --head automation/upstream-sync --state open --label upstream-conflict --json isCrossRepository --jq '[.[] | select(.isCrossRepository | not)] | length')
+          if [ "$open" != "0" ]; then
+            echo "::notice::An open automation/upstream-sync pull request carries upstream-conflict. Resolve it and remove the label to resume the weekly sync."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Merge upstream
+        id: merge
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          git switch -C automation/upstream-sync
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node fork/sync-upstream.mjs update --allow-conflicts --summary "$RUNNER_TEMP/summary.json"
+          echo "changed=$(jq -r '.changed' "$RUNNER_TEMP/summary.json")" >> "$GITHUB_OUTPUT"
+      - name: Push the branch
+        if: steps.merge.outputs.changed == 'true'
+        run: |
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/automation/upstream-sync" --force
+      - name: Open or update the pull request
+        if: steps.merge.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          summary="$RUNNER_TEMP/summary.json"
+          conflicts=$(jq '.conflicts | length' "$summary")
+          title="Sync from upstream: pstack-claude $(jq -r '.upstreamVersion' "$summary") ($(jq -r '.upstream[0:7]' "$summary"))"
+
+          enable=false
+          if [ "$conflicts" != "0" ]; then
+            status="Auto-merge is off: the merge has conflicts that need a person."
+          elif [ "$(gh api "repos/$GITHUB_REPOSITORY/rules/branches/main" --jq 'any(.[]; .type == "required_status_checks")')" != "true" ]; then
+            status="Auto-merge is off: the rules for main require no status check, so a merge would not wait for Fork gate."
+          else
+            enable=true
+            status="Auto-merge is on: it merges once the required checks pass."
+          fi
+
+          node fork/sync-upstream.mjs pr-body --summary "$summary" --automerge "$status" > "$RUNNER_TEMP/body.md"
+          number=$(gh pr list --repo "$GITHUB_REPOSITORY" --head automation/upstream-sync --state open --json number,isCrossRepository --jq '[.[] | select(.isCrossRepository | not)][0].number // empty')
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$RUNNER_TEMP/body.md"
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" --base main --head automation/upstream-sync --title "$title" --body-file "$RUNNER_TEMP/body.md"
+            number=$(gh pr list --repo "$GITHUB_REPOSITORY" --head automation/upstream-sync --state open --json number,isCrossRepository --jq '[.[] | select(.isCrossRepository | not)][0].number')
+          fi
+
+          if [ "$conflicts" != "0" ]; then
+            gh label create upstream-conflict --repo "$GITHUB_REPOSITORY" --color B60205 --description "The upstream sync has conflicts a person must resolve" --force
+            gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --add-label upstream-conflict
+          else
+            gh workflow run fork-gate.yml --repo "$GITHUB_REPOSITORY" --ref automation/upstream-sync
+            if [ "$enable" = "true" ]; then
+              gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --merge
+            fi
+          fi
+          echo "Pull request #$number: $status" >> "$GITHUB_STEP_SUMMARY"
