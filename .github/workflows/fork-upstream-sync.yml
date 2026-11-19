@@ -23,22 +23,28 @@ name: Sync from upstream
 # the App the workflow uses GITHUB_TOKEN. That works until an upstream range
 # touches a workflow file, which GITHUB_TOKEN may not push; the run then fails
 # with a message that names the files and the two ways out.
+#
+# A pull request that changes this workflow file runs "App token check", which
+# proves the App can mint the token the sync job requests.
 
 on:
   schedule:
     - cron: "41 7 * * 1"
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/fork-upstream-sync.yml"
 
 permissions: {}
 
 concurrency:
-  group: fork-upstream-sync
+  group: fork-upstream-sync-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   sync:
     name: Sync from upstream
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -148,3 +154,39 @@ jobs:
             fi
           fi
           echo "Pull request #$number: $status" >> "$GITHUB_STEP_SUMMARY"
+
+  app-token-check:
+    name: App token check
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Check whether the FENIX-WORKSPACE App is configured
+        id: app
+        env:
+          APP_ID: ${{ secrets.FENIX_HOMEBREW_APP_ID }}
+        run: |
+          if [ -n "$APP_ID" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::The FENIX-WORKSPACE App secrets are not set on this repository, so the App token was not checked."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create the App token
+        id: app-token
+        if: steps.app.outputs.configured == 'true'
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
+        with:
+          app-id: ${{ secrets.FENIX_HOMEBREW_APP_ID }}
+          private-key: ${{ secrets.FENIX_HOMEBREW_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+      - name: Read the repository with the App token
+        if: steps.app.outputs.configured == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          name=$(gh api "repos/$GITHUB_REPOSITORY" --jq .full_name)
+          echo "FENIX-WORKSPACE App token minted for $name with contents: write, pull_requests: write and workflows: write." >> "$GITHUB_STEP_SUMMARY"
