@@ -1,5 +1,7 @@
 # pstack
 
+> fenix's fork. Fork changes, the upstream sync commands and their schedule are in [FORK.md](FORK.md).
+
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-support-yellow?logo=buy-me-a-coffee&logoColor=white)](https://buymeacoffee.com/codenyer)
 [![Mentioned in Awesome Claude Code](https://awesome.re/mentioned-badge.svg)](https://github.com/hesreallyhim/awesome-claude-code)
 

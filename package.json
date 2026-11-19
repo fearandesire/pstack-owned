@@ -48,5 +48,9 @@
     "@earendil-works/pi-coding-agent": {
       "optional": true
     }
+  },
+  "scripts": {
+    "skills:check": "node fork/sync-upstream.mjs check",
+    "skills:update": "node fork/sync-upstream.mjs update"
   }
 }

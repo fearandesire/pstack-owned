@@ -1,0 +1,49 @@
+name: Fork gate
+
+# The check the branch rule on main requires. It repeats the "Generated files
+# current" job of ci.yml, fails on an unresolved upstream-merge conflict marker
+# anywhere outside fork/, and runs the tests of fork/sync-upstream.mjs. The sync
+# workflow starts it with workflow_dispatch, because a pull request opened with
+# GITHUB_TOKEN does not start pull_request workflows unattended.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: fork-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fork-gate:
+    name: fork-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read # check out the code
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Reject unresolved conflict markers
+        run: |
+          if git grep -I -n -E '^(<<<<<<< |>>>>>>> )' -- . ':(exclude)fork'; then
+            echo "::error::Conflict markers remain in the files listed above"
+            exit 1
+          fi
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: "1.4.4"
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Install the copy of Pi the tests load
+        run: bun install --frozen-lockfile
+        working-directory: plugins
+      - name: Check generated files and plugin invariants
+        run: bun tools/generate.mjs --check
+      - name: Tool and invariant fixture tests
+        run: bun test tests/
+      - name: Test the upstream sync tool
+        run: node --test fork/*.test.mjs
