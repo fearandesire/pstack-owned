@@ -2,13 +2,66 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
-## 0.9.135 - OpenCode plugin activation stall
+## 0.9.140 - sync to upstream 2f87c85 (v0.15.43): shorter skills, worker.md, one-file how, why, and reflect
 
-`opencode/index.js` awaited `ctx.skill.transform()` inside `setup()`, but OpenCode applies a plugin's skill transforms only after `setup()` resolves. Activation never finished, so every v2 catalog request failed with HTTP 503 "Location plugins did not finish activating", and a client that loaded the plugin, PandaCode included, listed no models. On OpenCode 2.2.7 the request failed after 13.5 s with 0.9.134 and returned 521 models across 7 providers in 4.2 s once `setup()` stopped waiting. A rejected transform now logs and skips routing instead of failing the turn, and `tests/opencode.test.mjs` covers both paths ([#2](https://github.com/fearandesire/pstack-owned/pull/2)).
+The upstream pin moves from `c742dd6` to `2f87c85`, upstream v0.15.43, 2 pstack commits (cursor/plugins#1236 and #1249). `cursor-team-kit` and `thermos` did not change upstream, so their pins stay. @bramvera ran this sync in [#467](https://github.com/michael-denyer/pstack-claude/pull/467).
 
-## 0.9.134 - authorized owner-led landing
+What changes for users:
 
-This fork of Michael Denyer's 0.9.133 restores owner-agent landing for authorized ordinary Autopilot-full work. Independent verification, current-head checks, service-enforced head guards and confirmed merge readback remain mandatory. Explicit holds and Autopilot-stack still stop before landing; deployment and promotion require separate authorization. Runtime adapters and unrelated workflows remain upstream-owned.
+- `how`, `why`, and `reflect` are each one short file. `how` starts one read-only subagent and presents its answer. `why` answers from the commits and PR discussions behind the code. `reflect` reads the transcript itself, with no reviewer or synthesizer subagents, and still waits for approval before it edits a skill. Their reference prompts and per-source playbooks are gone.
+- `architect` is a short brief: trace every system the change touches, sketch two shapes, pick the one with one owner per piece of state, and run `arena` for a large or contested design. The five phases, runner prompt, red-flag list, and rationale template are gone.
+- poteto-mode no longer routes to `how`. Its trigger list is 13 short lines, its playbook list is names only, and the Comments section is gone (`no-comments` still runs before review).
+- A new `poteto-mode/worker.md` carries the operator's rules to every started agent. The first line of each kickoff points at it by absolute path.
+- The Orchestrate playbook is deleted. Program-scale work routes to `figure-it-out`.
+- The Babysit, Opening a PR, and Multi-phase plan playbooks are cut to a few rules each. Multi-phase plan no longer runs `check-plan.mjs`, so the script, its tests, and its hook contract are deleted.
+- No role runs above xhigh unless the model sheet sets a higher level on the role's line or the `default effort` line. The `strongest judgment` model runs outside a panel only when the user names it for the task or two xhigh runs of the same brief on the task's own role model failed their check.
+- A second opinion, and the show-me-your-work reviewer, run on a model from another family.
+- Fourteen principle leaves, `unslop`, and `technical-writing` have shorter bodies with the same rules.
+- `statechart` reports a spec's SANY line and column on a parse error and draws arrows into a parent state through its border.
+
+Retired roles. `models.json` drops `how explorer`, `how explainer`, `why investigators`, `why synthesizer`, `reflect tooling`, `reflect judgment, divergent, synthesizer`, and `architect runners`, because their skills no longer spawn those subagents. `setup-pstack` drops such lines from an existing sheet on its next run. The port keeps `strongest judgment`, `thermos reviewers`, and `no-comments reviewer`, and keeps its own role tiers in `models.json` rather than upstream's Opus-first slugs.
+
+Forks. Every fork in `tools/forks.json` survives, merged onto upstream's new text, except seven files upstream deleted that the port had edited: `architect/references/rationale-template.md`, `how/references/explainer-prompt.md`, `why/references/epistemics.md`, `why/references/investigator-prompt.md`, `why/references/synthesizer-prompt.md`, `poteto-mode/scripts/check-plan.mjs`, and `poteto-mode/scripts/check-plan.test.ts`. The port follows upstream and deletes them. The human-rulings rule that `epistemics.md` held now sits inline in `recall` and the Session pickup playbook. The architect deviation rule from `rationale-template.md` now sits in `architect/SKILL.md`. The two #231 reflect pins in `tests/skill-rules.test.mjs` are removed with the reviewer prompts they guarded. The #72 rule that keeps a skipped step as a `skip: <reason>` line stays, though upstream dropped it.
+
+`agents/poteto-agent.md` drops upstream's new `model:` pin, because the port passes model and effort on each `Agent` call from the role sheet. An `inherit-parent` role keeps the `pstack:poteto-agent` type and runs on the parent model.
+
+New substitution rules rewrite upstream's new Cursor slugs in poteto-mode, arena, and the eval playbook to point at the Models sections, rewrite arena's vendor rule and family prefixes to the port's family rule, rewrite the control-ui driver line and the cursor-team-kit `/deslop` line, and map Project workers and readonly agent mode to background workers and full tool access. 34 rules whose upstream text is gone were removed. The generator no longer stamps a driver line into the deleted Orchestrate playbook.
+
+## 0.9.139 - safer worktree cleanup and resume, playbook checks, and GPT-6.2 defaults
+
+The worktree audit checks ignored files in initialized submodules and compares local branches with the tips advertised by origin. @EthanYoQ found the submodule case and proposed a fix in [#459](https://github.com/michael-denyer/pstack-claude/pull/459). Pi records ownership in each new agent worktree's private Git directory so reusing its path cannot redirect a resumed agent or its cleanup.
+
+The project playbook checker accepts YAML comments and block lists of base names. It skips fenced examples and checks each quoted anchor against an individual bundled step.
+
+Codex defaults to GPT-6.2 Sol for general and worker roles and GPT-6.2 Astra for strongest judgment. Pi uses these defaults on its OpenAI providers when its model registry lists them. Older catalogs keep their supported model IDs, and a user's model sheet still takes precedence.
+
+## 0.9.138 - worktree audit shows behind and diverged remotes
+
+The REMOTE column of `worktree-audit.mjs` counted only the commits a worktree had that its pushed branch lacked. A worktree whose pushed branch someone else had advanced printed `ahead0`, which reads as in sync, and a diverged one printed only its ahead count. The column now counts both sides and prints `aheadN`, `behindN`, or `aheadN,behindN`. The pushed, no-remote, and detached cases are unchanged, and no worktree changes bucket, because the bucket reads only whether the remote state is known. The 0.9.137 package already carried this change, and its entry left it out. @wattanartongtipsukon-create found and fixed this in [#453](https://github.com/michael-denyer/pstack-claude/pull/453).
+
+## 0.9.137 - project playbook frontmatter read as YAML
+
+`check-playbooks.mjs` matched a project playbook's frontmatter as raw text, so frontmatter that is valid YAML failed with the wrong error. A quoted `extends: "bug-fix"` or a one-line flow list `extends: [bug-fix, feature]` reported an unknown base. Blanks after an opening or closing `---`, or a closing `---` at the end of the file, kept the script from finding the frontmatter, so it reported a missing `when:` line. The script now drops one pair of matching quotes from `when` and from each `extends` item, reads a one-line flow list, and accepts both delimiter forms. A quoted `"[bug-fix]"` stays one stem, as YAML reads it. A `when` that is empty once unquoted now fails as a missing `when:` line. The script still does not read a block list under `extends:` or a trailing `# comment`. @wattanartongtipsukon-create found and fixed this in [#455](https://github.com/michael-denyer/pstack-claude/pull/455), and a follow-up commit on that PR unquotes each `extends` item instead of the whole value.
+
+## 0.9.136 - project playbooks from the home folder
+
+poteto-mode now reads project playbooks from `~/.agents/playbooks/` as well as from the repository's `.agents/playbooks/`, so a playbook that extends a bundled one can apply in every repository without a copy in each. Home playbooks take the same frontmatter and changes. When playbooks from both folders fit a task, the home folder's changes apply first. `check-playbooks.mjs` checks both folders, names a home playbook by its `~/.agents/playbooks/` path, and checks a repository at the home folder once. The path is the `~/.agents/` folder that Copilot and the skills-only install already read skills from, so it works on every runtime. @MrBinnacle asked for this in [#449](https://github.com/michael-denyer/pstack-claude/issues/449).
+
+## 0.9.135 - worktree audit reads compressed Codex rollouts
+
+`worktree-audit.mjs` now reads the `.jsonl.zst` rollouts under Codex's `sessions` and `archived_sessions`. It used to skip them, so a worktree whose latest chat sat in a compressed rollout showed no LAST_CHAT and could be reported safe. Plain `.jsonl` transcripts are read as before, and `find-transcript.mjs` lists compressed files only for a caller that passes `includeCompressed`, so the **reflect** skill's search is unchanged. @EthanYoQ found and fixed this in [#425](https://github.com/michael-denyer/pstack-claude/pull/425).
+
+The audit decodes in the process with `zlib.zstdDecompressSync` when that decoder reads every frame of a file and rejects a truncated one. It checks both once at start-up. Node 26.13.0 passes the check. Bun 1.4.4 returns the partial output of a truncated frame without an error, so the audit runs the `zstd` command there, as it does on a Node that has no Zstd decoder. Only a machine that has compressed rollouts needs a decoder.
+
+A compressed rollout that cannot be decoded, because it is corrupt or truncated or because no decoder is available, leaves LAST_CHAT unknown for every worktree. The audit warns `transcript scan failed` with the file's path, and no worktree reaches safe until the file decodes or is removed.
+
+## 0.9.134 - Fable 5.2 on Pi, Pi 1.5.1 as the oldest supported Pi
+
+On Pi, the `anthropic` provider's `fable` role runs `claude-fable-5-2`, where it ran `claude-fable-5-1`. A session on a provider that has no table of its own uses the `anthropic` table, so its `fable` role changes too. Claude Code sessions need no change, because Claude Code 2.1.321 moved its own `fable` alias to Fable 5.2. The model first appears in Pi 1.5.1's catalog. Pi 1.5.0 does not have it. It warns `Model "claude-fable-5-2" not found for provider "anthropic". Using custom model id.` and runs that ID with the context window, pricing, and thinking settings of the provider's default model. To stay on Fable 5.1, add the line `pi models: fable=anthropic/claude-fable-5-1` to the override sheet.
+
+Pi 1.5.1 is now the oldest Pi that the port supports. CI typechecks the Pi extension against Pi 1.5.1, where it used Pi 1.1.0, and checks the model catalog, child startup, and slash expansion against it. `CONTRIBUTING.md` asks for the local Pi checks on Pi 1.5.1. No CI job runs on Pi 1.1.0 through 1.5.0 any longer. The copy of Pi that the tests load the extension against moves from 1.5.0 to 1.5.2.
+
+Pi 1.5.1 changed how it splits the arguments of a prompt template, and the extension's copy of that code in `pi/slash.ts` now does the same. The extension uses the copy when a wake-up prompt that the agent scheduled names a prompt template. A quote opens only at the start of an argument, so `--title="fix bug"` gives the template `--title="fix` and `bug"`, where it gave `--title=fix bug`. Inside a quoted argument, a backslash before the same kind of quote keeps the quote as text. A quote that never closes is text, and the words after it split at each space, so `open "quote here` gives `open`, `"quote`, and `here`, where it gave `open` and `quote here`. On Pi 1.5.0 and older, Pi itself still splits such arguments the old way. A local `bun test tests/` reads the installed Pi, so against Pi 1.5.0 or older `tests/pi/slash.test.mjs` and `tests/pi/catalog.test.mjs` each fail one test. Set `PI_PACKAGE_DIR` to a Pi 1.5.1 package to run them.
 
 ## 0.9.133 - worktree audit ref and PR fixes, setup-pstack runtime notes
 
