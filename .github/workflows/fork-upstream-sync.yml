@@ -15,7 +15,7 @@ name: Sync from upstream
 # fork. Otherwise the pull request stays open and its description and the job
 # summary say why.
 #
-# The push and every pull request call use a token from the FENIX_HOMEBREW GitHub
+# The push and every pull request call use a token from the FENIX-WORKSPACE GitHub
 # App when the secrets FENIX_HOMEBREW_APP_ID and FENIX_HOMEBREW_APP_PRIVATE_KEY
 # exist (Contents, Pull requests and Workflows write on this repository). That
 # token can push changes to .github/workflows, and a pull request it opens starts
@@ -55,7 +55,7 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: "1.4.4"
-      - name: Check whether the FENIX_HOMEBREW App is configured
+      - name: Check whether the FENIX-WORKSPACE App is configured
         id: app
         env:
           APP_ID: ${{ secrets.FENIX_HOMEBREW_APP_ID }}
@@ -101,7 +101,7 @@ jobs:
           if [ "$APP_CONFIGURED" != "true" ]; then
             files=$(git diff --name-only origin/main HEAD -- .github/workflows)
             if [ -n "$files" ]; then
-              echo "::error::This sync changes workflow files, which GITHUB_TOKEN may not push: $(echo "$files" | tr '\n' ' '). Either install the FENIX_HOMEBREW App on this repository with Contents, Pull requests and Workflows write and add the secrets FENIX_HOMEBREW_APP_ID and FENIX_HOMEBREW_APP_PRIVATE_KEY, or run npm run skills:update locally and push the branch."
+              echo "::error::This sync changes workflow files, which GITHUB_TOKEN may not push: $(echo "$files" | tr '\n' ' '). Either install the FENIX-WORKSPACE App on this repository with Contents, Pull requests and Workflows write and add the secrets FENIX_HOMEBREW_APP_ID and FENIX_HOMEBREW_APP_PRIVATE_KEY, or run npm run skills:update locally and push the branch."
               exit 1
             fi
           fi
