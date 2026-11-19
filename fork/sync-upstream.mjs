@@ -238,13 +238,13 @@ function writeSummary(args, summary) {
 }
 
 function finish(args, config, summary, { message, merge }) {
-  writeFileSync(join(root, CONFIG), JSON.stringify({ ...config, base: summary.upstream }, null, 2) + "\n");
   const ran = [];
   if (!summary.conflicts.length) {
     runStep(process.env.FORK_SYNC_INSTALL ?? "bun install --frozen-lockfile && bun install --frozen-lockfile --cwd plugins", ran);
     runStep(process.env.FORK_SYNC_GENERATE ?? "bun tools/generate.mjs", ran);
     if (!args["no-check"]) runStep(process.env.FORK_SYNC_CHECK ?? "bun tools/generate.mjs --check && bun test tests/", ran);
   }
+  writeFileSync(join(root, CONFIG), JSON.stringify({ ...config, base: summary.upstream }, null, 2) + "\n");
   git(["add", "-A"]);
   git(["commit", "--quiet", "-m", message]);
   const head = out(["rev-parse", "HEAD"]);

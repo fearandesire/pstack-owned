@@ -269,6 +269,23 @@ describe("update", () => {
     assert.equal(sync(fork, "check").stdout.startsWith("current"), true);
   });
 
+  test("a failing check leaves the recorded base alone, so a rerun still reports the whole range", () => {
+    const { upstream, fork } = fixture();
+    const tip = release(upstream, "1.1.0", "second");
+    const failing = spawnSync("node", [SCRIPT, "update"], { cwd: fork, encoding: "utf8", env: { ...ENV, FORK_SYNC_CHECK: "false" } });
+    assert.equal(failing.status, 3);
+    assert.match(failing.stderr, /command failed/);
+    assert.equal(JSON.parse(read(fork, "fork/upstream.json")).base === tip, false);
+    assert.equal(git(fork, "rev-parse", "MERGE_HEAD"), tip);
+
+    const summaryFile = join(fork, "..", "summary.json");
+    const done = sync(fork, "update", "--continue", "--summary", summaryFile);
+    assert.equal(done.status, 0, done.stderr + done.stdout);
+    const summary = JSON.parse(read(fork, "../summary.json"));
+    assert.deepEqual([summary.commits, summary.headings], [1, ["## 1.1.0 - second"]]);
+    assert.equal(JSON.parse(read(fork, "fork/upstream.json")).base, tip);
+  });
+
   test("--allow-conflicts commits the markers and lists the files, and --continue follows up", () => {
     const { upstream, fork } = fixture();
     put(fork, { "src/app.txt": "one\nFORK\nthree\n" });
