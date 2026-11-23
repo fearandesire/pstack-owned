@@ -67,13 +67,34 @@ function bundledSteps(body) {
       current = { indent: start[1].length, lines: [start[2]] };
       steps.push(current);
     } else if (current && line.trim()) {
-      if (line.startsWith(" ".repeat(current.indent)) || (!afterBlank && !/^ {0,3}(?:#{1,6} |[-*+] )/.test(line))) {
+      if (line.startsWith(" ".repeat(current.indent)) || (!afterBlank && !/^ {0,3}(?:#{1,6}[ \t]|[-*+] )/.test(line))) {
         current.lines.push(line.trim());
       } else current = undefined;
     }
     afterBlank = !line.trim();
   }
-  return steps.map((step) => flat(step.lines.join(" ")));
+  return steps.length ? steps.map((step) => flat(step.lines.join(" "))) : proseBlocks(body);
+}
+
+// A playbook without numbered steps, such as opening-a-pr, writes each step as a paragraph or a list item.
+function proseBlocks(body) {
+  const blocks = [];
+  let current;
+  let paragraph = false;
+  for (const line of proseLines(body)) {
+    const item = /^ *(?:[-*+]|\d+[.)]) +(.*)$/.exec(line);
+    if (!line.trim() || /^ {0,3}#{1,6}(?:[ \t]|$)/.test(line)) current = undefined;
+    else if (current && paragraph && /^ {0,3}(?:=+|-+)[ \t]*$/.test(line)) {
+      // A setext underline turns the paragraph above it into a heading; after a list item it is text or a break.
+      blocks.pop();
+      current = undefined;
+    } else if (item || !current) {
+      current = [item ? item[1] : line.trim()];
+      paragraph = !item;
+      blocks.push(current);
+    } else current.push(line.trim());
+  }
+  return blocks.map((lines) => flat(lines.join(" ")));
 }
 
 export function checkPlaybooks(root, bundled = BUNDLED) {
