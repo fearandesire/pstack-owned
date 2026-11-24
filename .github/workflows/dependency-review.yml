@@ -15,6 +15,10 @@ jobs:
     name: Dependency review
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # The dependency graph API answers 403 on this fork until the graph is
+    # enabled in its repository settings, so the job runs on the upstream
+    # repository only.
+    if: github.event.repository.fork == false
     steps:
       # Compares the dependency graph of base and head through the API, so no
       # checkout is needed. Fails the PR when it adds a dependency with a
