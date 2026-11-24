@@ -30,7 +30,7 @@
   "skills": "./skills/",
   "hooks": "./hooks/codex-hooks.json",
   "interface": {
-    "displayName": "pstack",
+    "displayName": "fenix pstack",
     "shortDescription": "Rigorous, parallelizable agent workflows: go deep first, write less, verify everything",
     "longDescription": "pstack guides agent work through poteto-mode's principles, parallel design exploration (architect/arena), adversarial multi-model review (interrogate), root-cause debugging, prose deslopping, and verified delivery. Skills are shared with the Claude Code build; on Codex, tool names resolve via the codex-tools mapping.",
     "developerName": "Michael Denyer (port of Lauren Tan's pstack)",
@@ -46,7 +46,7 @@
     ],
     "websiteURL": "https://github.com/michael-denyer/pstack-claude",
     "brandColor": "#7C3AED",
-    "composerIcon": "./assets/pstack-icon.png",
-    "logo": "./assets/pstack-icon.png"
+    "composerIcon": "./assets/fenix-pstack-icon-64.png",
+    "logo": "./assets/fenix-pstack-icon-512.png"
   }
 }
