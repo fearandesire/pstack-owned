@@ -1,7 +1,7 @@
 {
   "name": "pstack-claude",
   "interface": {
-    "displayName": "pstack"
+    "displayName": "fenix pstack"
   },
   "plugins": [
     {

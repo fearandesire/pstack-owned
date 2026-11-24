@@ -22,7 +22,20 @@ This fork follows [michael-denyer/pstack-claude](https://github.com/michael-deny
 - **Owner-led landing in Autopilot-full.** Upstream stops Autopilot-full at merge-ready and leaves every merge to the operator. The fork lets the owner agent land authorized ordinary work itself, once independent verification, current-head checks, a head guard enforced by the service and a confirmed merge readback all hold. Explicit holds, Autopilot-stack and deployment or promotion still stop short of landing. This exists so a routine pull request does not wait on a manual merge after every gate has passed.
 - **OpenCode activation fix.** The plugin's `setup()` no longer awaits a skill transform that OpenCode applies only after `setup()` resolves. Awaiting it stalled activation and failed every model-catalog request with HTTP 503.
 - **Upstream sync tooling.** `fork/sync-upstream.mjs` (`npm run skills:check` and `npm run skills:update`) merges upstream with an explicit base commit, resolves the version file, the changelog and version-stamped JSON itself, and leaves every skill-text conflict to a person. A weekly workflow opens the sync pull request, and the `Fork gate` check fails while conflict markers remain.
+- **Fork branding.** The Claude and Codex manifests show the name `fenix pstack` and the Codex manifest uses the fork's icons. The plugin is still named `pstack`, so skills keep their `pstack:<skill>` names.
 - **Fork registry.** Every forked skill file is declared in [`tools/forks.json`](tools/forks.json) with its kind and the reason it differs, and the tests fail when a sync drops one.
+
+Install this fork as a plugin:
+
+```text
+/plugin marketplace add fearandesire/pstack-owned
+/plugin install pstack@pstack-claude
+```
+
+```shell
+codex plugin marketplace add fearandesire/pstack-owned
+codex plugin add pstack@pstack-claude
+```
 
 ## Install
 
