@@ -48,6 +48,10 @@ With the FENIX-WORKSPACE GitHub App configured (the secrets `FENIX_HOMEBREW_APP_
 
 `.github/workflows/fork-gate.yml` ("Fork gate", job `fork-gate`) is the check the branch rule requires. It runs the generated-files job's steps from `ci.yml`, fails on a conflict-marker line in any tracked file outside `fork/`, and runs the sync tool's tests.
 
+## Workflows that differ from upstream
+
+- `dependency-review.yml` is skipped on the fork (`if: github.event.repository.fork == false`). The action calls the dependency graph API, which answers 403 on a fork until the dependency graph is enabled in the repository settings. Remove the condition once it is.
+
 ## Resolving a conflict pull request
 
 1. Check out the branch: `git fetch origin automation/upstream-sync && git switch automation/upstream-sync`.
