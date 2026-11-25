@@ -45,12 +45,12 @@ Do not push if the tree changed unintentionally.
 
 ## Reviewer Guidance
 
-When code behavior should stay untouched, prefer PR description and review notes:
+When code behavior should stay untouched, prefer the PR body and review notes, in the repository template's sections:
 
-- Add a TL;DR that matches the actual diff.
-- Separate core files from generated or mechanical files.
-- Call out risky behavior changes, migration order, rollout plan, and test coverage.
-- Link issue trackers, dashboards, or design docs when they explain intent.
+- `## Summary` says what is different after the merge, for whom, and why, and it matches the actual diff.
+- `## Tour` lists where to look, in review order, and names generated or mechanical files in place so they stay out of the stops that matter.
+- `## Risk` names a risky behavior change, the migration order, and the rollout and rollback, and `## Verified` gives each check with its result.
+- Link issue trackers, dashboards, or design docs in `## Summary` and the `Evidence` toggle.
 
 ## Guardrails
 

@@ -2,6 +2,10 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
+## 0.9.156 - make-pr-easy-to-review points at the template sections
+
+When `make-pr-easy-to-review` improves a description without touching code, it now names the sections to fill instead of restating a body shape of its own. The summary carries what changed and who it is for and matches the actual diff, the tour lists where to look in review order and names generated or mechanical files in place, the risk line carries a behavior change along with its rollout and rollback, and the verified list gives each check with its result. Issue links, dashboards, and design docs go in the summary and the `Evidence` toggle. The file is the port's first fork of it, so `tools/forks.json` records it.
+
 ## 0.9.155 - guided-tour PR template and the body shape the skills state
 
 The repository's pull request template now asks for a guided tour instead of a report. A visible Summary, Tour, Screenshots, Verified, Risk, and Docs run in that order at two or three short sentences each, and the length goes into two collapsed toggles: Evidence holds the issue, the spec or decision, related PRs, what was not verified, and the command log, while Scope and rollout holds what the change covers, leaves out, the tradeoff taken, and the rollout and rollback. The old What and why, Linked issue, Test run, and Checklist sections are gone, so the sections a reviewer reads first are the ones that answer what is different and where to look.

@@ -344,6 +344,12 @@
     }
   },
   "cursor-team-kit": {
+    "plugins/pstack/skills/make-pr-easy-to-review/SKILL.md": {
+      "kind": "policy",
+      "why": "Points its reviewer guidance at the port's template sections, so the summary, the tour, the risk line and the evidence toggle replace the loose description bullets.",
+      "since": "0.9.156",
+      "upstream": "not-proposed"
+    },
     "plugins/pstack/skills/deslop/SKILL.md": {
       "kind": "policy",
       "why": "Scopes the diff to the PR's base branch, else the branch it was cut from, else the default branch, with uncommitted changes, and reruns the verifying checks after editing, reverting any edit whose check fails.",
