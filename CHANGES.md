@@ -2,6 +2,12 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
+## 0.9.157 - the tour section is Guided tour, and Screenshots and Docs are optional
+
+The repository's pull request template now names its tour section `Guided tour` in place of `Tour`, and holds Screenshots and the one-line Docs entry as commented snippets. A pull request that applies neither renders neither, so no template shows an empty heading. The same template states that the visible sections are Summary, Guided tour, Verified, and Risk, followed by the two collapsed toggles.
+
+The skills say the same. Opening a PR lists those four visible sections and the two toggles, with Screenshots and Docs included only when they apply. `worker.md` carries the same list for a delegated run, and `make-pr-easy-to-review` names `Guided tour` when it points a description at the template's sections.
+
 ## 0.9.156 - make-pr-easy-to-review points at the template sections
 
 When `make-pr-easy-to-review` improves a description without touching code, it now names the sections to fill instead of restating a body shape of its own. The summary carries what changed and who it is for and matches the actual diff, the tour lists where to look in review order and names generated or mechanical files in place, the risk line carries a behavior change along with its rollout and rollback, and the verified list gives each check with its result. Issue links, dashboards, and design docs go in the summary and the `Evidence` toggle. The file is the port's first fork of it, so `tools/forks.json` records it.
