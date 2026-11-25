@@ -2,6 +2,12 @@
 
 This file is the release changelog, with one `## <version> - <title>` entry per release, newest first. The Cursor-to-Claude rewrite rules live in [`tools/substitutions.json`](tools/substitutions.json), and the [sync boundary](CONTRIBUTING.md#the-sync-boundary) in `CONTRIBUTING.md` defines how a change to upstream's skill content is declared.
 
+## 0.9.155 - guided-tour PR template and the body shape the skills state
+
+The repository's pull request template now asks for a guided tour instead of a report. A visible Summary, Tour, Screenshots, Verified, Risk, and Docs run in that order at two or three short sentences each, and the length goes into two collapsed toggles: Evidence holds the issue, the spec or decision, related PRs, what was not verified, and the command log, while Scope and rollout holds what the change covers, leaves out, the tradeoff taken, and the rollout and rollback. The old What and why, Linked issue, Test run, and Checklist sections are gone, so the sections a reviewer reads first are the ones that answer what is different and where to look.
+
+The skills state the same shape. The Opening a PR playbook asks for the template's sections and a title of one clause in the present tense under 72 characters, with no issue key and no trailing period, and it names the eleven types a title may start with, from `feat` to `revert`, in place of upstream's six-heading briefing. `worker.md` carries the same title rule and section list for a delegated run, `technical-writing` says a PR body fills the template's sections and keeps anything longer in the toggles, and poteto-mode opens a PR `## Summary` with the goal rather than `## Why`.
+
 ## 0.9.154 - Codex fixes: routing on forked chats, agent roles and isolation, principles out of the skill list
 
 On Codex, the `SessionStart` routing hook now also runs when a chat is forked, so a fork loads the routing instruction and honours `session hook: off` as a new session does. As after every pstack update, Codex asks to review the hook again. The Claude Code and GitHub Copilot hooks are unchanged. From @oliver-mee ([#542](https://github.com/michael-denyer/pstack-claude/pull/542), for [#541](https://github.com/michael-denyer/pstack-claude/issues/541)).
