@@ -48,7 +48,7 @@ Do not push if the tree changed unintentionally.
 When code behavior should stay untouched, prefer the PR body and review notes, in the repository template's sections:
 
 - `## Summary` says what is different after the merge, for whom, and why, and it matches the actual diff.
-- `## Tour` lists where to look, in review order, and names generated or mechanical files in place so they stay out of the stops that matter.
+- `## Guided tour` lists where to look, in review order, and names generated or mechanical files in place so they stay out of the stops that matter.
 - `## Risk` names a risky behavior change, the migration order, and the rollout and rollback, and `## Verified` gives each check with its result.
 - Link issue trackers, dashboards, or design docs in `## Summary` and the `Evidence` toggle.
 
