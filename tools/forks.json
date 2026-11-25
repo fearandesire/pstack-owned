@@ -44,7 +44,7 @@
     },
     "plugins/pstack/skills/poteto-mode/SKILL.md": {
       "kind": "policy",
-      "why": "Adds the Platform Adaptation section, whose runtime sentence the generator stamps from RUNTIMES, with its task-tool and todo.md fallback (per task slug when sessions share a checkout, and beside the desktop app's short update_plan list), keeps a skipped playbook step in the todolist as a skip line, the deploy-platform and defect-severity triggers, the focused-fix exception to the architect trigger, the port's principle summaries, the project playbooks paragraph, and the closed-review-gate rule that the Codex and Pi mappings point to, and it uses the namespaced pstack:poteto-agent name, requires stopping an abandoned agent before replacing it, renders every reply item as prose, layers technical-writing on top of unslop, points the bot-review trigger at the triage rubric, and lets a level above xhigh that the sheet sets for a role stand, since the port's setup offers max where upstream's budget step capped at xhigh.",
+      "why": "Adds the Platform Adaptation section, whose runtime sentence the generator stamps from RUNTIMES, with its task-tool and todo.md fallback (per task slug when sessions share a checkout, and beside the desktop app's short update_plan list), keeps a skipped playbook step in the todolist as a skip line, the deploy-platform and defect-severity triggers, the focused-fix exception to the architect trigger, the port's principle summaries, the project playbooks paragraph, and the closed-review-gate rule that the Codex and Pi mappings point to, and it uses the namespaced pstack:poteto-agent name, requires stopping an abandoned agent before replacing it, renders every reply item as prose, layers technical-writing on top of unslop, opens a PR `## Summary` with the goal, points the bot-review trigger at the triage rubric, and lets a level above xhigh that the sheet sets for a role stand, since the port's setup offers max where upstream's budget step capped at xhigh.",
       "since": "0.9.2",
       "upstream": "not-proposed"
     },
@@ -86,7 +86,7 @@
     },
     "plugins/pstack/skills/poteto-mode/playbooks/opening-a-pr.md": {
       "kind": "policy",
-      "why": "Requires stopping every live agent that holds a worktree before committing, merging, or deploying from it.",
+      "why": "Requires stopping every live agent that holds a worktree before committing, merging, or deploying from it, and asks for the port's guided-tour body sections and the one-clause title under 72 characters in place of upstream's six-heading briefing.",
       "since": "0.9.10",
       "upstream": "not-proposed"
     },
@@ -184,6 +184,12 @@
       "kind": "policy",
       "why": "Adds the review-required, behind-base, and merge-blocked gate reasons, the landing revision on open PR facts and in the ready proof, the head repository of an open PR, the default-branch reader method, deadline, spawn-failed, snapshot-changed, and invalid-stack query failures, the mergeability-unknown wait reason, and the no-checks reading (a none-reported fast path, a no-rollup page, the ci-none state, the ci-unreported first sighting, and the checks-unreported wait reason), and the check-suites source on each failed or pending suite row, its typed reader method, and the non-retryable unsupported-gh and graphql-refused failures. Names the query failure for a missing response field `missing-field`, not `missing-key`, for the same scanner. Adds the suite read, which returns the uncounted apps beside the suite checks, the expected apps on the reader method and the polling options, and the uncounted apps on ci-clean and ci-none.",
       "since": "0.9.24",
+      "upstream": "not-proposed"
+    },
+    "plugins/pstack/skills/poteto-mode/worker.md": {
+      "kind": "policy",
+      "why": "States the title rule and the port's guided-tour body sections, with anything longer kept in the collapsed toggles.",
+      "since": "0.9.155",
       "upstream": "not-proposed"
     },
     "plugins/pstack/skills/principle-build-the-lever/SKILL.md": {
@@ -328,6 +334,12 @@
       "kind": "policy",
       "why": "Requires quoting the failure content, not the assertion line, as evidence that the new test fails for the intended reason.",
       "since": "0.9.21",
+      "upstream": "not-proposed"
+    },
+    "plugins/pstack/skills/technical-writing/SKILL.md": {
+      "kind": "policy",
+      "why": "Says a PR body fills the port's template sections and keeps anything longer in the collapsed toggles.",
+      "since": "0.9.155",
       "upstream": "not-proposed"
     }
   },
